@@ -1,5 +1,7 @@
 # Rack::Raml
 
+[![Build Status](https://travis-ci.org/rzane/rack-raml.svg?branch=master)](https://travis-ci.org/rzane/rack-raml)
+
 A mountable mock server for your [RAML](https://raml.org) specifications based on Rack.
 
 __Note:__ This is not intended for use in production environments.
