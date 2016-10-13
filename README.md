@@ -1,8 +1,8 @@
 # Rack::Raml
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/rack/raml`. To experiment with that code, run `bin/console` for an interactive prompt.
+A mountable mock server for your [RAML](https://raml.org) specifications based on Rack.
 
-TODO: Delete this and the text above, and describe your gem
+__Note:__ This is not intended for use in production environments.
 
 ## Installation
 
@@ -12,23 +12,84 @@ Add this line to your application's Gemfile:
 gem 'rack-raml'
 ```
 
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install rack-raml
-
 ## Usage
 
-TODO: Write usage instructions here
+Rack::Raml implements a Rack compatible application that responds to `#call`. Therefore, it can be used with any Rack-based web framework.
 
-## Development
+#### Rails
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+To use with Rails, simply point specific URLs at an instance of `Rack::Raml::App` like so:
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+```ruby
+MyApplication.routes.draw do
+  # ...
+
+  Rack::Raml.routes Rails.root.join('path/to/spec.raml') do |raml_app|
+    get '/api/v1/users/:id', to: raml_app
+  end
+end
+```
+
+#### Sinatra
+
+To use with Sinatra, you have a few options. The easiest way is to define your route, and invoke `#process`.
+
+```ruby
+raml_file = File.expand_path('../path/to/spec.raml', __FILE__)
+raml_app = Rack::Raml.create(raml_file)
+
+get '/api/v1/users/:id' do
+  raml_app.process(request)
+end
+```
+
+Otherwise, you might configure `Rack::Raml` in your `config.ru`.
+
+#### Example RAML
+
+```yaml
+#%RAML 0.8
+---
+title: Dummy API
+baseUri: https://dummy-api.com/api/{version}
+version: v1
+
+/users:
+  /{id}:
+    displayName: Find a user
+    get:
+      responses:
+        200:
+          description: User was found.
+          body:
+            application/json:
+              example: |-
+                {
+                  "id": 1,
+                  "first_name": "John",
+                  "last_name": "Doe"
+                }
+```
+
+## Status Codes
+
+In RAML, you'll often specify multiple status codes that your server might respond with. By default, Rack::Raml will respond with the lowest status code that you've specified. So, for example, if you've declared a 200 and a 401 response, it will respond with the 200 response code unless otherwise instructed.
+
+You can force Rack::Raml to use a specific status code by requesting the url with the `_code` query parameter. For example:
+
+```
+$ curl http://localhost:3000/api/v1/users?_code=401
+```
+
+## Content Types
+
+The server will respond with the content type that matches the request. If the request does not specify a content type, Rack::Raml will assume you want `application/json`.
+
+You can force Rack::Raml to use a specific content type by requesting the url with the `_type` query parameter. For example:
+
+```
+$ curl http://localhost:3000/api/v1/users?_type=text/plain
+```
 
 ## Contributing
 
@@ -38,4 +99,3 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/[USERN
 ## License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
-
