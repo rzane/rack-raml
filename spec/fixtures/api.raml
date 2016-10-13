@@ -1,0 +1,26 @@
+#%RAML 0.8
+---
+title: Dummy API
+baseUri: https://dummy-api.com/api/{version}
+version: v1
+
+/users:
+  /{id}:
+    displayName: Find a user
+    get:
+      responses:
+        401:
+          description: Unauthorized.
+          body:
+            application/json:
+              example: |-
+                {"error": "not authorized"}
+
+        200:
+          description: User was found.
+          body:
+            application/json:
+              example: |-
+                {"success": true}
+            text/plain:
+              example: success
