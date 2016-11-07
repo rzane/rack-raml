@@ -33,6 +33,8 @@ module Rack
       end
 
       def flatten_resources(node)
+        return [] unless node.respond_to?(:children)
+
         node.children.inject([]) do |acc, child|
           acc << child if child.kind_of?(::Raml::Resource)
           acc + flatten_resources(child)
