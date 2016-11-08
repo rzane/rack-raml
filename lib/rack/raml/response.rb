@@ -1,3 +1,4 @@
+require 'json'
 require 'uri_template'
 
 module Rack
