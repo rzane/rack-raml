@@ -82,14 +82,4 @@ RSpec.describe Rack::Raml::App do
       end
     end
   end
-
-  describe '#resources' do
-    it 'deeply grabs all Raml::Resource objects' do
-      paths = app.resources.map do |resource|
-        resource.resource_path
-      end
-
-      expect(paths).to eq(['/users', '/users/{id}'])
-    end
-  end
 end

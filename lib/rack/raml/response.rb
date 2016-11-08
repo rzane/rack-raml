@@ -4,10 +4,10 @@ require 'uri_template'
 module Rack
   module Raml
     class Response
-      attr_reader :resources, :request
+      attr_reader :raml, :request
 
-      def initialize(resources, request)
-        @resources = resources
+      def initialize(raml_file, request)
+        @raml = ::Raml.parse_file(raml_file)
         @request = request
       end
 
@@ -57,6 +57,15 @@ module Rack
           path: path,
           verb: verb
         }.to_json
+      end
+
+      def resources(node = raml)
+        return [] unless node.respond_to?(:children)
+
+        node.children.inject([]) do |acc, child|
+          acc << child if child.kind_of?(::Raml::Resource)
+          acc + resources(child)
+        end
       end
 
       def response

@@ -6,12 +6,9 @@ module Rack
     class App
       attr_reader :raml_file
 
-      def initialize(raml_file)
+      def initialize(raml_file, responder: Rack::Raml::Response)
         @raml_file = raml_file
-      end
-
-      def raml
-        @raml ||= ::Raml.parse_file(raml_file)
+        @responder = responder
       end
 
       def call(env)
@@ -22,23 +19,10 @@ module Rack
         response_for(request).to_rack
       end
 
-      def resources
-        @resources ||= flatten_resources(raml)
-      end
-
       private
 
       def response_for(request)
-        Rack::Raml::Response.new(resources, request)
-      end
-
-      def flatten_resources(node)
-        return [] unless node.respond_to?(:children)
-
-        node.children.inject([]) do |acc, child|
-          acc << child if child.kind_of?(::Raml::Resource)
-          acc + flatten_resources(child)
-        end
+        @responder.new(raml_file, request)
       end
     end
   end
